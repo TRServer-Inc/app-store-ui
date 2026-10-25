@@ -134,7 +134,7 @@
     </header>
 
     <div class="app-grid" id="appGrid">
-        <!-- Uygulamalar buraya dinamik yüklenecek -->
+        <!-- Uygulamalar dinamik yüklenecek -->
     </div>
 
     <script>
@@ -156,25 +156,28 @@
             const grid = document.getElementById('appGrid');
             grid.innerHTML = '';
 
+            if (!apps || apps.length === 0) {
+                grid.innerHTML = '<p style="color:#94a3b8;">henüz eklenmiş bir uygulama bulunmuyor.</p>';
+                return;
+            }
+
             apps.forEach(app => {
                 const card = document.createElement('div');
                 card.className = 'app-card';
 
                 let downloadAction = '';
                 if (app.platform === 'ios') {
-                    // iOS için Direct Install (itms-services protokolü)
                     const manifestUrl = encodeURIComponent(`${RENDER_SERVICE_URL}/manifest?title=${encodeURIComponent(app.name)}&bundleId=${app.bundleId}&version=${app.version}&ipa=${encodeURIComponent(app.ipaUrl)}`);
                     const itmsUrl = `itms-services://?action=download-manifest&url=${manifestUrl}`;
                     downloadAction = `<a href="${itmsUrl}" class="install-btn" onclick="trackDownload('${app.id}')">iOS Yükle (OTA)</a>`;
                 } else {
-                    // Windows için doğrudan indirme
                     downloadAction = `<a href="${app.downloadUrl}" class="install-btn" onclick="trackDownload('${app.id}')" download>Windows İndir</a>`;
                 }
 
                 card.innerHTML = `
                     <div>
                         <div class="app-header">
-                            <img src="${app.iconUrl}" class="app-icon" alt="${app.name}">
+                            <img src="${app.iconUrl}" class="app-icon" alt="${app.name}" onerror="this.src='https://via.placeholder.com/60'">
                             <div class="app-info">
                                 <h3>${app.name}</h3>
                                 <p>${app.description}</p>
