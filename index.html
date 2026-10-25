@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppVault - Uygulama Mağazası</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #94a3b8;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #0284c7;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .platforms {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .platform-tag {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>appvault store</h1>
+        <div class="status-badge" id="status">sistem hazır</div>
+        <p>mağaza altyapısı ve render web service entegrasyonu tamamlandı. henüz eklenmiş bir uygulama bulunmuyor.</p>
+        
+        <div class="platforms">
+            <span class="platform-tag">iOS (Direct Install)</span>
+            <span class="platform-tag">Windows (.exe)</span>
+        </div>
+    </div>
+
+    <script>
+        // render backend linkini buraya yazacaksın
+        const RENDER_SERVICE_URL = "https://senin-render-servisin.onrender.com";
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(RENDER_SERVICE_URL);
+                if (res.ok) {
+                    document.getElementById('status').innerText = 'backend aktif';
+                    document.getElementById('status').style.backgroundColor = '#10b981';
+                }
+            } catch (e) {
+                document.getElementById('status').innerText = 'backend bekleniyor';
+                document.getElementById('status').style.backgroundColor = '#f59e0b';
+            }
+        }
+
+        checkStatus();
+    </script>
+</body>
+</html>
