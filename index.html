@@ -16,93 +16,195 @@
             background-color: #0f172a;
             color: #f8fafc;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .container {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 30px;
         }
 
         h1 {
             color: #38bdf8;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: #94a3b8;
-            margin-bottom: 25px;
-            font-size: 0.95rem;
+            font-size: 1.8rem;
         }
 
         .status-badge {
-            display: inline-block;
             padding: 6px 12px;
-            background-color: #0284c7;
+            background-color: #10b981;
             color: #fff;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: bold;
-            margin-bottom: 20px;
         }
 
-        .platforms {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .platform-tag {
-            background-color: #0f172a;
+        .app-card {
+            background-color: #1e293b;
             border: 1px solid #334155;
-            padding: 8px 14px;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            object-fit: cover;
+            background-color: #334155;
+        }
+
+        .app-info h3 {
+            font-size: 1.1rem;
+            color: #f1f5f9;
+        }
+
+        .app-info p {
             font-size: 0.85rem;
-            color: #cbd5e1;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .badge-ios { background-color: #0284c7; color: #fff; }
+        .badge-windows { background-color: #2563eb; color: #fff; }
+
+        .install-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+
+        .install-btn:hover {
+            background-color: #059669;
+        }
+
+        .download-count {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 10px;
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <header>
         <h1>appvault store</h1>
-        <div class="status-badge" id="status">sistem hazır</div>
-        <p>mağaza altyapısı ve render web service entegrasyonu tamamlandı. henüz eklenmiş bir uygulama bulunmuyor.</p>
-        
-        <div class="platforms">
-            <span class="platform-tag">iOS (Direct Install)</span>
-            <span class="platform-tag">Windows (.exe)</span>
-        </div>
+        <div class="status-badge" id="status">backend aktif</div>
+    </header>
+
+    <div class="app-grid" id="appGrid">
+        <!-- Uygulamalar buraya dinamik yüklenecek -->
     </div>
 
     <script>
-        // render backend linkini buraya yazacaksın
         const RENDER_SERVICE_URL = "https://app-store-backend-p6jo.onrender.com";
 
-        async function checkStatus() {
+        async function fetchApps() {
             try {
-                const res = await fetch(RENDER_SERVICE_URL);
-                if (res.ok) {
-                    document.getElementById('status').innerText = 'backend aktif';
-                    document.getElementById('status').style.backgroundColor = '#10b981';
-                }
-            } catch (e) {
-                document.getElementById('status').innerText = 'backend bekleniyor';
-                document.getElementById('status').style.backgroundColor = '#f59e0b';
+                const res = await fetch(`${RENDER_SERVICE_URL}/api/apps`);
+                const apps = await res.json();
+                renderApps(apps);
+            } catch (err) {
+                console.error("Uygulamalar yüklenemedi:", err);
+                document.getElementById('status').innerText = 'bağlantı hatası';
+                document.getElementById('status').style.backgroundColor = '#ef4444';
             }
         }
 
-        checkStatus();
+        function renderApps(apps) {
+            const grid = document.getElementById('appGrid');
+            grid.innerHTML = '';
+
+            apps.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'app-card';
+
+                let downloadAction = '';
+                if (app.platform === 'ios') {
+                    // iOS için Direct Install (itms-services protokolü)
+                    const manifestUrl = encodeURIComponent(`${RENDER_SERVICE_URL}/manifest?title=${encodeURIComponent(app.name)}&bundleId=${app.bundleId}&version=${app.version}&ipa=${encodeURIComponent(app.ipaUrl)}`);
+                    const itmsUrl = `itms-services://?action=download-manifest&url=${manifestUrl}`;
+                    downloadAction = `<a href="${itmsUrl}" class="install-btn" onclick="trackDownload('${app.id}')">iOS Yükle (OTA)</a>`;
+                } else {
+                    // Windows için doğrudan indirme
+                    downloadAction = `<a href="${app.downloadUrl}" class="install-btn" onclick="trackDownload('${app.id}')" download>Windows İndir</a>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="app-header">
+                            <img src="${app.iconUrl}" class="app-icon" alt="${app.name}">
+                            <div class="app-info">
+                                <h3>${app.name}</h3>
+                                <p>${app.description}</p>
+                                <span class="badge badge-${app.platform}">${app.platform} (v${app.version})</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="download-count">İndirme: <span id="count-${app.id}">${app.downloads}</span></span>
+                        ${downloadAction}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function trackDownload(appId) {
+            try {
+                const res = await fetch(`${RENDER_SERVICE_URL}/api/download/${appId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    const el = document.getElementById(`count-${appId}`);
+                    if (el) el.innerText = data.downloads;
+                }
+            } catch (e) {
+                console.error("Sayaç güncellenemedi", e);
+            }
+        }
+
+        fetchApps();
     </script>
 </body>
 </html>
