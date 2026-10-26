@@ -45,7 +45,7 @@
 
         .app-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
@@ -85,43 +85,54 @@
             margin-top: 4px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 8px;
+        .versions-box {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid #334155;
         }
 
-        .badge-ios { background-color: #0284c7; color: #fff; }
-        .badge-windows { background-color: #2563eb; color: #fff; }
+        .action-buttons {
+            display: flex;
+            gap: 12px; /* Butonlar arasındaki o şık boşluk */
+        }
 
         .install-btn {
-            width: 100%;
-            margin-top: 15px;
+            flex: 1;
             padding: 10px;
-            background-color: #10b981;
-            color: #fff;
-            border: none;
             border-radius: 8px;
             font-weight: bold;
+            font-size: 0.85rem;
             cursor: pointer;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            transition: background 0.2s;
+            transition: opacity 0.2s;
+            border: none;
+            color: #fff;
         }
 
         .install-btn:hover {
-            background-color: #059669;
+            opacity: 0.85;
+        }
+
+        .btn-ios {
+            background-color: #0284c7;
+        }
+
+        .btn-windows {
+            background-color: #2563eb;
         }
 
         .download-count {
             font-size: 0.8rem;
             color: #64748b;
-            margin-top: 10px;
+            margin-bottom: 10px;
             display: block;
         }
     </style>
@@ -165,14 +176,9 @@
                 const card = document.createElement('div');
                 card.className = 'app-card';
 
-                let downloadAction = '';
-                if (app.platform === 'ios') {
-                    const manifestUrl = encodeURIComponent(`${RENDER_SERVICE_URL}/manifest?title=${encodeURIComponent(app.name)}&bundleId=${app.bundleId}&version=${app.version}&ipa=${encodeURIComponent(app.ipaUrl)}`);
-                    const itmsUrl = `itms-services://?action=download-manifest&url=${manifestUrl}`;
-                    downloadAction = `<a href="${itmsUrl}" class="install-btn" onclick="trackDownload('${app.id}')">iOS Yükle (OTA)</a>`;
-                } else {
-                    downloadAction = `<a href="${app.downloadUrl}" class="install-btn" onclick="trackDownload('${app.id}')" download>Windows İndir</a>`;
-                }
+                // iOS OTA Manifest Linki Oluşturma
+                const manifestUrl = encodeURIComponent(`${RENDER_SERVICE_URL}/manifest?title=${encodeURIComponent(app.name)}&bundleId=${app.ios.bundleId}&version=${app.ios.version}&ipa=${encodeURIComponent(app.ios.ipaUrl)}`);
+                const itmsUrl = `itms-services://?action=download-manifest&url=${manifestUrl}`;
 
                 card.innerHTML = `
                     <div>
@@ -181,13 +187,19 @@
                             <div class="app-info">
                                 <h3>${app.name}</h3>
                                 <p>${app.description}</p>
-                                <span class="badge badge-${app.platform}">${app.platform} (v${app.version})</span>
                             </div>
+                        </div>
+                        <div class="versions-box">
+                            <span><b>Win:</b> v${app.windows.version}</span>
+                            <span><b>iOS:</b> v${app.ios.version}</span>
                         </div>
                     </div>
                     <div>
-                        <span class="download-count">İndirme: <span id="count-${app.id}">${app.downloads}</span></span>
-                        ${downloadAction}
+                        <span class="download-count">Toplam İndirme: <span id="count-${app.id}">${app.downloads || 0}</span></span>
+                        <div class="action-buttons">
+                            <a href="${app.windows.downloadUrl}" class="install-btn btn-windows" onclick="trackDownload('${app.id}')" download>Windows İndir</a>
+                            <a href="${itmsUrl}" class="install-btn btn-ios" onclick="trackDownload('${app.id}')">iOS Yükle</a>
+                        </div>
                     </div>
                 `;
                 grid.appendChild(card);
